@@ -189,9 +189,11 @@ function startDraft()
     else
       broadcastToAll("Drafting Counter-Clockwise", { 1, 1, 1 })
     end
+    local draftSize = getObjectOrCrash('d1ab12', "Can't find draft size counter").getValue()
+    log("Draft size is "..draftSize)
     for k, player in pairs(PLAYER_ORDER) do
       if (Player[player].seated) then
-        deck.deal(4, player, DEAL_HAND_INDEX)
+        deck.deal(draftSize, player, DEAL_HAND_INDEX)
       end
     end
   end
@@ -515,7 +517,8 @@ function organizeHeldCards(playerColor, separationDistance)
   local cardRot = 0;
   for i, obj in pairs(selected) do
     if (obj.name ~= "Card") then
-      broadcastToColor(playerColor, "Can't organize non-card objects.")
+      broadcastToColor("Can't organize non-card objects.", playerColor, {r=1,b=0,g=0})
+      return
     end
     cardRot = obj.getRotation().y
   end
