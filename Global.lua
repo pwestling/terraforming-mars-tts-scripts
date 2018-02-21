@@ -10,7 +10,7 @@ function getObjectOrCrash(guid, message)
   return obj
 end
 
-LOGGING = true
+LOGGING = false
 
 function log(message)
   if (LOGGING) then
@@ -496,5 +496,62 @@ function onObjectRandomize(obj, playerColor)
   end
 end
 
+GREEN_CARD_DIST = 0.75
+BLUE_CARD_DIST = 1.7
+
+
+function DIV(a, b)
+  return (a - a % b) / b
+end
+
+function ROUNDDOWN(a, b)
+  return DIV(a, b) * b
+end
+
+
+function organizeHeldCards(playerColor, separationDistance)
+  local player = Player[playerColor]
+  local selected = player.getSelectedObjects()
+  local cardRot = 0;
+  for i, obj in pairs(selected) do
+    if (obj.name ~= "Card") then
+      broadcastToColor(playerColor, "Can't organize non-card objects.")
+    end
+    cardRot = obj.getRotation().y
+  end
+
+  local start = player.getPointerPosition()
+  local rotation = player.getPointerRotation();
+
+  log("Card Y rotation is :" .. cardRot)
+  local targetYRotation = ROUNDDOWN(cardRot + 45, 90) % 360
+  log("Targetted Y rotation is :" .. targetYRotation)
+  local translation = { x = 1, y = 0.2, z = 0 }
+
+  if (closeTo(targetYRotation, 180, 1)) then
+    translation = { x = 0, y = 0.2, z = -1 * separationDistance }
+  elseif (closeTo(targetYRotation, 270, 1)) then
+    translation = { x = -1 * separationDistance, y = 0.2, z = 1 }
+  elseif (closeTo(targetYRotation, 0, 1) or closeTo(targetYRotation, 360, 1)) then
+    translation = { x = 0, y = 0.2, z = 1 * separationDistance }
+  elseif (closeTo(targetYRotation, 90, 1)) then
+    translation = { x = 1 * separationDistance, y = 0.2, z = 0 }
+  end
+
+
+  for i, obj in pairs(selected) do
+    obj.setRotation({ x = 0, y = targetYRotation, z = 0 })
+    obj.setPosition(start)
+    start = { x = start.x + translation.x, y = start.y + translation.y, z = start.z + translation.z }
+  end
+end
+
+
 function onScriptingButtonDown(button_number, playerColor)
+  if (button_number == 1) then
+    organizeHeldCards(playerColor, GREEN_CARD_DIST)
+  end
+  if (button_number == 2) then
+    organizeHeldCards(playerColor, BLUE_CARD_DIST)
+  end
 end
