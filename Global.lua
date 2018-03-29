@@ -66,6 +66,9 @@ end
 
 DECK_ZONE = '7ef4f3'
 DISCARD_ZONE = '1bda10'
+STARTING_PLAYER_TOKEN = '10f1b6'
+USED_CARD_TAG = 'usedCard'
+GENERATION_CUBE = '5dc1b8'
 
 function closeTo(num, target, tolerance)
   return num > (target - tolerance) and num < (target + tolerance)
@@ -102,7 +105,8 @@ default_state = {
   draft_rotation = 1,
   drafting = false,
   buttons = {},
-  playerDraftQueue = {}
+  playerDraftQueue = {},
+  firstPlayer = nil
 }
 
 state = {}
@@ -159,10 +163,7 @@ REAL_HAND_INDEX = 2
 PLAYER_ORDER = { "Red", "White", "Blue", "Green", "Yellow" }
 
 function getNextPlayer(currPlayer, direction)
-  local dir = 1
-  if (direction == "Clockwise") then
-    dir = -1
-  end
+  local dir = direction
   local hitCurrent = false
   local index = 0
   for i = 1, 20 do
@@ -180,7 +181,28 @@ end
 DRAFT_QUEUE_BAG = 'e51789'
 
 function startDraft()
+  if (state.firstPlayer ~= nil) then
+    state.firstPlayer = getNextPlayer(state.firstPlayer, -1)
+  else
+    broadcastToAll("No first player selected. Use 'r' on the starting player token to become first player", { 1, 1, 1 })
+  end
+  for i, obj in pairs(getAllObjects()) do
+    if (obj.getVar(USED_CARD_TAG)) then
+      obj.highlightOff()
+      obj.setVar(USED_CARD_TAG, false)
+    end
+  end
+
   if (not state.drafting) then
+    for k, player in pairs(PLAYER_ORDER) do
+      if (Player[player].seated) then
+        if (#Player[player].getHandObjects(DEAL_HAND_INDEX) > 0) then
+          broadcastToAll("Please empty all drafting hands before beginning the draft", { 1, 1, 1 })
+          return
+        end
+      end
+    end
+
     local deck = findDeck()
     state.drafting = true
     state.draft_rotation = state.draft_rotation * -1
@@ -189,8 +211,12 @@ function startDraft()
     else
       broadcastToAll("Drafting Counter-Clockwise", { 1, 1, 1 })
     end
+    for i, player in pairs(Player.getPlayers()) do
+      local nextPlayerColor = getNextPlayer(player.color, state.draft_rotation)
+      broadcastToColor("You are passing to " .. nextPlayerColor, player.color, { 1, 1, 1 })
+    end
     local draftSize = getObjectOrCrash('d1ab12', "Can't find draft size counter").getValue()
-    log("Draft size is "..draftSize)
+    log("Draft size is " .. draftSize)
     for k, player in pairs(PLAYER_ORDER) do
       if (Player[player].seated) then
         deck.deal(draftSize, player, DEAL_HAND_INDEX)
@@ -242,6 +268,17 @@ function draftCard(cardObject, playerColor)
   end
 end
 
+function finishDraft()
+  log("Draft is over")
+  broadcastToAll("Drafting is complete", { 1, 1, 1 })
+  state.drafting = false
+  if (state.firstPlayer ~= nil) then
+    broadcastToAll("First player will be " .. state.firstPlayer, { 1, 1, 1 })
+  end
+  local genCube = getObjectOrCrash(GENERATION_CUBE, "Could not find generation marker!")
+  genCube.translate({x=0,z=1.18,y=2})
+end
+
 function draftIsOver()
   for k, queue in pairs(state.playerDraftQueue) do
     if (#queue > 0) then
@@ -255,7 +292,7 @@ function draftIsOver()
       return false
     end
   end
-  log("Draft is over")
+  timer("finishDraft", "finishDraft", {}, 0.5)
   state.drafting = false
   return true
 end
@@ -496,6 +533,10 @@ function onObjectRandomize(obj, playerColor)
       forceDealToHand(playerColor, REAL_HAND_INDEX, obj)
     end
   end
+  if (obj.getGUID() == "10f1b6") then
+    broadcastToAll(playerColor .. " has become the first player", { 1, 1, 1 })
+    state.firstPlayer = playerColor
+  end
 end
 
 GREEN_CARD_DIST = 0.75
@@ -517,7 +558,7 @@ function organizeHeldCards(playerColor, separationDistance)
   local cardRot = 0;
   for i, obj in pairs(selected) do
     if (obj.name ~= "Card") then
-      broadcastToColor("Can't organize non-card objects.", playerColor, {r=1,b=0,g=0})
+      broadcastToColor("Can't organize non-card objects.", playerColor, { r = 1, b = 0, g = 0 })
       return
     end
     cardRot = obj.getRotation().y
@@ -549,6 +590,12 @@ function organizeHeldCards(playerColor, separationDistance)
   end
 end
 
+function useCard(playerColor)
+  local player = Player[playerColor]
+  local card = player.getHoverObject()
+  card.highlightOn({ 1, 0, 0 })
+  card.setVar(USED_CARD_TAG, true)
+end
 
 function onScriptingButtonDown(button_number, playerColor)
   if (button_number == 1) then
@@ -556,5 +603,8 @@ function onScriptingButtonDown(button_number, playerColor)
   end
   if (button_number == 2) then
     organizeHeldCards(playerColor, BLUE_CARD_DIST)
+  end
+  if (button_number == 3) then
+    useCard(playerColor)
   end
 end
