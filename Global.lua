@@ -10,7 +10,7 @@ function getObjectOrCrash(guid, message)
   return obj
 end
 
-LOGGING = false
+LOGGING = true
 
 function log(message)
   if (LOGGING) then
@@ -241,7 +241,9 @@ function dealFromQueue(playerColor, handIndex, guid)
   queueBag.takeObject({ guid = guid, position = handTransform.position, rotation = rot, smooth = false })
 end
 
-function draftCard(cardObject, playerColor)
+function draftCard(args)
+  local cardObject = args["cardObject"]
+  local playerColor = args["playerColor"]
   if (state.drafting) then
     local cardGuid = cardObject.getGUID()
     local otherCards = Player[playerColor].getHandObjects(DEAL_HAND_INDEX)
@@ -276,7 +278,7 @@ function finishDraft()
     broadcastToAll("First player will be " .. state.firstPlayer, { 1, 1, 1 })
   end
   local genCube = getObjectOrCrash(GENERATION_CUBE, "Could not find generation marker!")
-  genCube.translate({x=0,z=1.18,y=2})
+  genCube.translate({ x = 0, z = 1.18, y = 2 })
 end
 
 function draftIsOver()
@@ -479,12 +481,15 @@ function consolidate(params)
       end
     end
   end
+  createMoney(mostNegX, total)
+end
+
+function createMoney(x, total)
   local num10s = math.floor(total / 10);
   total = total - (10 * num10s)
   local num5s = math.floor(total / 5)
   total = total - (5 * num5s)
   local num1s = total
-  local x = mostNegX
   if (num10s > 0) then
     for i = 1, num10s do
       makeCube(state.cloneable.gold, { x = x, y = y, z = z })
@@ -524,7 +529,8 @@ function onObjectRandomize(obj, playerColor)
     end
   end
   if (state.drafting == true and obj.tag == "Card" and hand == DEAL_HAND_INDEX) then
-    draftCard(obj, playerColor)
+    timer(playerColor.."draftCard", "draftCard", 
+    { cardObject = obj, playerColor = playerColor},0.1)
   end
   if (state.drafting == false and obj.tag == "Card" and hand > 0) then
     if (closeTo(obj.getRotation().z, 180, 2)) then
@@ -582,7 +588,6 @@ function organizeHeldCards(playerColor, separationDistance)
     translation = { x = 1 * separationDistance, y = 0.2, z = 0 }
   end
 
-
   for i, obj in pairs(selected) do
     obj.setRotation({ x = 0, y = targetYRotation, z = 0 })
     obj.setPosition(start)
@@ -593,8 +598,15 @@ end
 function useCard(playerColor)
   local player = Player[playerColor]
   local card = player.getHoverObject()
-  card.highlightOn({ 1, 0, 0 })
-  card.setVar(USED_CARD_TAG, true)
+  if (card ~= nil) then
+    if (card.getVar(USED_CARD_TAG)) then
+      card.highlightOff()
+      card.setVar(USED_CARD_TAG, false)
+    else
+      card.highlightOn({ 1, 0, 0 })
+      card.setVar(USED_CARD_TAG, true)
+    end
+  end
 end
 
 function onScriptingButtonDown(button_number, playerColor)
@@ -607,4 +619,38 @@ function onScriptingButtonDown(button_number, playerColor)
   if (button_number == 3) then
     useCard(playerColor)
   end
+end
+
+
+function startsWith(s, substring)
+  return string.sub(s, 1, string.len(substring)) == substring
+end
+
+function split(s, sep)
+  local result = {}
+  local i = 1
+  for token in string.gmatch(s, "[^"..sep.."]+") do
+    log(token)
+    result[i] = token
+    i = i+1
+  end
+  return result
+end
+
+function testCommand(args)
+  local arg1 = args[2]
+  local arg2 = args[3]
+  broadcastToAll(arg1, { 1, 1, 1 })
+end
+
+
+function onChat(message, player)
+  if(startsWith(message, "!")) then
+    local commandStr = string.sub(message, 2)
+    log(commandStr)
+    local parts = split(commandStr, "%s")
+    timer(player.color, parts[1], parts, 0.01)
+    return false
+  end
+  return true
 end
