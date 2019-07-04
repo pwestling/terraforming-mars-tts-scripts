@@ -20,20 +20,22 @@ end
 
 function timer(id, func, params, delay)
   Timer.destroy(id)
-  Timer.create({
-    identifier = id,
-    function_name = func,
-    parameters = params,
-    delay = delay
-  })
+  Timer.create(
+    {
+      identifier = id,
+      function_name = func,
+      parameters = params,
+      delay = delay
+    }
+  )
 end
 
 function detailedbutton(domino, label, fn, font_size)
   local button = {}
   button.width = 1300
   button.height = 600
-  button.position = { 0, -0.2, 0 }
-  button.rotation = { 180, 90, 0 }
+  button.position = {0, -0.2, 0}
+  button.rotation = {180, 90, 0}
   button.click_function = fn
   button.label = label
   button.font_size = font_size
@@ -51,7 +53,6 @@ function removeButtons(obj)
   state.buttons[obj.getGUID()] = nil
 end
 
-
 function setContainedItemDescription(guids, desc)
   for i, guid in pairs(guids) do
     local bag = getObjectUnsafe(guid)
@@ -64,11 +65,11 @@ function setContainedItemDescription(guids, desc)
   end
 end
 
-DECK_ZONE = '7ef4f3'
-DISCARD_ZONE = '1bda10'
-STARTING_PLAYER_TOKEN = '10f1b6'
-USED_CARD_TAG = 'usedCard'
-GENERATION_CUBE = '5dc1b8'
+DECK_ZONE = "7ef4f3"
+DISCARD_ZONE = "1bda10"
+STARTING_PLAYER_TOKEN = "10f1b6"
+USED_CARD_TAG = "usedCard"
+GENERATION_CUBE = "5dc1b8"
 
 function closeTo(num, target, tolerance)
   return num > (target - tolerance) and num < (target + tolerance)
@@ -85,7 +86,7 @@ end
 
 function discard(card)
   local pos = getObjectOrCrash(DISCARD_ZONE, "Could not find discard zone").getPosition()
-  card.setPosition({ x = pos.x, y = pos.y + 4, z = pos.z })
+  card.setPosition({x = pos.x, y = pos.y + 4, z = pos.z})
 end
 
 BRONZE_CUBE_DESC = "1 Resource"
@@ -114,35 +115,34 @@ state = {}
 function toTheVoid(obj)
   log("Voiding " .. obj.getGUID())
   obj.setLock(true)
-  obj.setPosition({ x = -100, y = -100, z = -100 })
+  obj.setPosition({x = -100, y = -100, z = -100})
   obj.setLock(true)
 end
 
 function setCloneableFromInfiniteBag(bagGuid, map, key)
-  local bag = getObjectOrCrash(bagGuid, "No bag with guid " .. bagGuid ..
-      " was found. Can't set cloneable for key " .. key)
-  local obj = bag.takeObject({ position = { x = 20, y = 20, z = 20 } })
+  local bag =
+    getObjectOrCrash(bagGuid, "No bag with guid " .. bagGuid .. " was found. Can't set cloneable for key " .. key)
+  local obj = bag.takeObject({position = {x = 20, y = 20, z = 20}})
   toTheVoid(obj)
   map[key] = obj.getGUID()
 end
 
 function onLoad(saved_state)
   state = default_state
-  setContainedItemDescription({ "86cbbf", "5e0b51", "41e877", "5746bb", "4318fd" }, BRONZE_CUBE_DESC)
-  setContainedItemDescription({ "8d637b", "3f225f", "ab5d85", "64360b", "ee1c20" }, SILVER_CUBE_DESC)
-  setContainedItemDescription({ "093df9", "8aa743", "a6a38b", "1e2bb6", "89d52c" }, GOLD_CUBE_DESC)
+  setContainedItemDescription({"86cbbf", "5e0b51", "41e877", "5746bb", "4318fd"}, BRONZE_CUBE_DESC)
+  setContainedItemDescription({"8d637b", "3f225f", "ab5d85", "64360b", "ee1c20"}, SILVER_CUBE_DESC)
+  setContainedItemDescription({"093df9", "8aa743", "a6a38b", "1e2bb6", "89d52c"}, GOLD_CUBE_DESC)
   setCloneableFromInfiniteBag("86cbbf", state.cloneable, "bronze")
   setCloneableFromInfiniteBag("8d637b", state.cloneable, "silver")
   setCloneableFromInfiniteBag("093df9", state.cloneable, "gold")
 
-  draftStartButton(getObjectOrCrash('0e761d', "Could not find button base for draft rotation button"))
+  draftStartButton(getObjectOrCrash("0e761d", "Could not find button base for draft rotation button"))
   findDeck().randomize()
 end
 
 function draftStartButton(domino)
   button(domino, "Start Draft", "startDraft")
 end
-
 
 function getHandForObject(obj, playerColor)
   local player = Player[playerColor]
@@ -160,7 +160,7 @@ DRAFT_HAND_INDEX = 3
 DEAL_HAND_INDEX = 1
 REAL_HAND_INDEX = 2
 
-PLAYER_ORDER = { "Red", "White", "Blue", "Green", "Yellow" }
+PLAYER_ORDER = {"Red", "White", "Blue", "Green", "Yellow"}
 
 function getNextPlayer(currPlayer, direction)
   local dir = direction
@@ -178,13 +178,13 @@ function getNextPlayer(currPlayer, direction)
   error("Could not find next player")
 end
 
-DRAFT_QUEUE_BAG = 'e51789'
+DRAFT_QUEUE_BAG = "e51789"
 
 function startDraft()
   if (state.firstPlayer ~= nil) then
     state.firstPlayer = getNextPlayer(state.firstPlayer, -1)
   else
-    broadcastToAll("No first player selected. Use 'r' on the starting player token to become first player", { 1, 1, 1 })
+    broadcastToAll("No first player selected. Use 'r' on the starting player token to become first player", {1, 1, 1})
   end
   for i, obj in pairs(getAllObjects()) do
     if (obj.getVar(USED_CARD_TAG)) then
@@ -197,7 +197,7 @@ function startDraft()
     for k, player in pairs(PLAYER_ORDER) do
       if (Player[player].seated) then
         if (#Player[player].getHandObjects(DEAL_HAND_INDEX) > 0) then
-          broadcastToAll("Please empty all drafting hands before beginning the draft", { 1, 1, 1 })
+          broadcastToAll("Please empty all drafting hands before beginning the draft", {1, 1, 1})
           return
         end
       end
@@ -207,15 +207,15 @@ function startDraft()
     state.drafting = true
     state.draft_rotation = state.draft_rotation * -1
     if (state.draft_rotation == -1) then
-      broadcastToAll("Drafting Clockwise", { 1, 1, 1 })
+      broadcastToAll("Drafting Clockwise", {1, 1, 1})
     else
-      broadcastToAll("Drafting Counter-Clockwise", { 1, 1, 1 })
+      broadcastToAll("Drafting Counter-Clockwise", {1, 1, 1})
     end
     for i, player in pairs(Player.getPlayers()) do
       local nextPlayerColor = getNextPlayer(player.color, state.draft_rotation)
-      broadcastToColor("You are passing to " .. nextPlayerColor, player.color, { 1, 1, 1 })
+      broadcastToColor("You are passing to " .. nextPlayerColor, player.color, {1, 1, 1})
     end
-    local draftSize = getObjectOrCrash('d1ab12', "Can't find draft size counter").getValue()
+    local draftSize = getObjectOrCrash("d1ab12", "Can't find draft size counter").getValue()
     log("Draft size is " .. draftSize)
     for k, player in pairs(PLAYER_ORDER) do
       if (Player[player].seated) then
@@ -228,7 +228,7 @@ end
 function forceDealToHand(playerColor, handIndex, card)
   local handTransform = Player[playerColor].getHandTransform(handIndex)
   local handRotation = handTransform.rotation
-  local rot = { x = handRotation.x, y = (handRotation.y + 180) % 360, z = handRotation.z }
+  local rot = {x = handRotation.x, y = (handRotation.y + 180) % 360, z = handRotation.z}
   card.setPosition(handTransform.position)
   card.setRotation(rot)
 end
@@ -237,8 +237,10 @@ function dealFromQueue(playerColor, handIndex, guid)
   local queueBag = getObjectOrCrash(DRAFT_QUEUE_BAG, "Could not find draft queue bag")
   local handTransform = Player[playerColor].getHandTransform(handIndex)
   local handRotation = handTransform.rotation
-  local rot = { x = handRotation.x, y = (handRotation.y + 180) % 360, z = handRotation.z }
-  queueBag.takeObject({ guid = guid, position = handTransform.position, rotation = rot, smooth = false })
+  local handPos = handTransform.position
+  local pos = {x = handPos.x, y = handPos.y + 6, z = handPos.z}
+  local rot = {x = handRotation.x, y = (handRotation.y + 180) % 360, z = handRotation.z}
+  queueBag.takeObject({guid = guid, position = handTransform.position, rotation = rot, smooth = false})
 end
 
 function draftCard(args)
@@ -266,19 +268,19 @@ function draftCard(args)
     if (#cardGuids > 0) then
       table.insert(state.playerDraftQueue[nextPlayer], cardGuids)
     end
-    timer(playerColor .. "fetchDraftQueue", "fetchFromDraftQueue", { playerColor = playerColor }, 0.2)
+    timer(playerColor .. "fetchDraftQueue", "fetchFromDraftQueue", {playerColor = playerColor}, 0.2)
   end
 end
 
 function finishDraft()
   log("Draft is over")
-  broadcastToAll("Drafting is complete", { 1, 1, 1 })
+  broadcastToAll("Drafting is complete", {1, 1, 1})
   state.drafting = false
   if (state.firstPlayer ~= nil) then
-    broadcastToAll("First player will be " .. state.firstPlayer, { 1, 1, 1 })
+    broadcastToAll("First player will be " .. state.firstPlayer, {1, 1, 1})
   end
   local genCube = getObjectOrCrash(GENERATION_CUBE, "Could not find generation marker!")
-  genCube.translate({ x = 0, z = 1.18, y = 2 })
+  genCube.translate({x = 0, z = 1.18, y = 2})
 end
 
 function draftIsOver()
@@ -310,10 +312,9 @@ function fetchFromDraftQueue(params)
       dealFromQueue(params.playerColor, DEAL_HAND_INDEX, cardGuid)
     end
   elseif (not draftIsOver()) then
-    timer(params.playerColor .. "fetchDraftQueue", "fetchFromDraftQueue", { playerColor = params.playerColor }, 0.2)
+    timer(params.playerColor .. "fetchDraftQueue", "fetchFromDraftQueue", {playerColor = params.playerColor}, 0.2)
   end
 end
-
 
 function distance2D(point1, point2)
   local x = point1.x - point2.x
@@ -321,9 +322,7 @@ function distance2D(point1, point2)
   return math.sqrt(x * x + z * z)
 end
 
-
 function onObjectDrop(player_color, dropped_object)
-
   --  local resources = {
   --    Steel = steelStart,
   --    Titanium = titanStart,
@@ -349,13 +348,12 @@ function onObjectDrop(player_color, dropped_object)
 end
 
 function addVec(pos, x, y, z)
-  return { x = pos.x + x, y = pos.y + y, z = pos.z + z }
+  return {x = pos.x + x, y = pos.y + y, z = pos.z + z}
 end
 
 function plantStart(zoneCenter, xdir, zdir)
   return addVec(zoneCenter, (xdir * -6), 0, (zdir * 1))
 end
-
 
 function creditStart(zoneCenter, xdir, zdir)
   return addVec(zoneCenter, (xdir * -4.6), 0, (zdir * -0.9))
@@ -380,7 +378,7 @@ end
 function resourceGridLocations(start, xdir, zdir, neg)
   local width = 0.55
   local p = addVec(start, width * xdir, 0, 0)
-  local result = { [0] = start }
+  local result = {[0] = start}
   local startI = 0
   if (neg ~= nil and neg) then
     startI = -5
@@ -390,15 +388,11 @@ function resourceGridLocations(start, xdir, zdir, neg)
     if (i < 0) then
       index = i
     end
-    result[index] =
-    addVec(p, xdir * width * (i % 5), 0, math.floor(i / 5) * zdir * width)
+    result[index] = addVec(p, xdir * width * (i % 5), 0, math.floor(i / 5) * zdir * width)
   end
 
   return result
 end
-
-
-
 
 function makeCube(newCubeGUID, pos)
   local newCube = getObjectUnsafe(newCubeGUID).clone({})
@@ -410,11 +404,11 @@ end
 
 function tradeCubes(cube, newCubeGUID, width, number)
   if (cube ~= nil and getObjectUnsafe(newCubeGUID) ~= nil) then
-    local pos = cube.getPosition();
+    local pos = cube.getPosition()
     toTheVoid(cube)
     local adjust = (width * number) / 2
     for i = 1, number do
-      makeCube(newCubeGUID, { x = pos.x - adjust + (i * width), y = pos.y + width + 0.2, z = pos.z })
+      makeCube(newCubeGUID, {x = pos.x - adjust + (i * width), y = pos.y + width + 0.2, z = pos.z})
     end
   else
     error("Unable to trade cubes - either cube was null, or cloneable for guid " .. newCubeGUID .. " does not exist")
@@ -452,29 +446,29 @@ end
 
 function consolidate(params)
   local total = 0
-  local selected = Player[params.playerColor].getSelectedObjects();
+  local selected = Player[params.playerColor].getSelectedObjects()
   local mostNegX = 9999
   local y = 0
   local z = 0
   for k, obj in pairs(selected) do
     if (obj.getPosition().y < 20) then
       if (is1(obj)) then
-        total = total + 1;
-        mostNegX = math.min(mostNegX, obj.getPosition().x);
+        total = total + 1
+        mostNegX = math.min(mostNegX, obj.getPosition().x)
         y = obj.getPosition().y
         z = obj.getPosition().z
         obj.destruct()
       end
       if (is5(obj)) then
-        total = total + 5;
-        mostNegX = math.min(mostNegX, obj.getPosition().x);
+        total = total + 5
+        mostNegX = math.min(mostNegX, obj.getPosition().x)
         y = obj.getPosition().y
         z = obj.getPosition().z
         obj.destruct()
       end
       if (is10(obj)) then
-        total = total + 10;
-        mostNegX = math.min(mostNegX, obj.getPosition().x);
+        total = total + 10
+        mostNegX = math.min(mostNegX, obj.getPosition().x)
         y = obj.getPosition().y
         z = obj.getPosition().z
         obj.destruct()
@@ -485,26 +479,26 @@ function consolidate(params)
 end
 
 function createMoney(x, total)
-  local num10s = math.floor(total / 10);
+  local num10s = math.floor(total / 10)
   total = total - (10 * num10s)
   local num5s = math.floor(total / 5)
   total = total - (5 * num5s)
   local num1s = total
   if (num10s > 0) then
     for i = 1, num10s do
-      makeCube(state.cloneable.gold, { x = x, y = y, z = z })
+      makeCube(state.cloneable.gold, {x = x, y = y, z = z})
       x = x + GOLD_WIDTH
     end
   end
   if (num5s > 0) then
     for i = 1, num5s do
-      makeCube(state.cloneable.silver, { x = x, y = y, z = z })
+      makeCube(state.cloneable.silver, {x = x, y = y, z = z})
       x = x + SILVER_WIDTH
     end
   end
   if (num1s > 0) then
     for i = 1, num1s do
-      makeCube(state.cloneable.bronze, { x = x, y = y, z = z })
+      makeCube(state.cloneable.bronze, {x = x, y = y, z = z})
       x = x + BRONZE_WIDTH
     end
   end
@@ -516,21 +510,22 @@ function onObjectRandomize(obj, playerColor)
     if (#Player[playerColor].getSelectedObjects() > 1) then
       local id = "consolidate " .. playerColor
       Timer.destroy(id)
-      Timer.create({
-        identifier = id,
-        function_name = 'consolidate',
-        parameters = {
-          playerColor = playerColor
-        },
-        delay = 0.1
-      })
+      Timer.create(
+        {
+          identifier = id,
+          function_name = "consolidate",
+          parameters = {
+            playerColor = playerColor
+          },
+          delay = 0.1
+        }
+      )
     else
       makeChange(obj, playerColor)
     end
   end
   if (state.drafting == true and obj.tag == "Card" and hand == DEAL_HAND_INDEX) then
-    timer(playerColor.."draftCard", "draftCard", 
-    { cardObject = obj, playerColor = playerColor},0.1)
+    timer(playerColor .. "draftCard", "draftCard", {cardObject = obj, playerColor = playerColor}, 0.1)
   end
   if (state.drafting == false and obj.tag == "Card" and hand > 0) then
     if (closeTo(obj.getRotation().z, 180, 2)) then
@@ -540,14 +535,13 @@ function onObjectRandomize(obj, playerColor)
     end
   end
   if (obj.getGUID() == "10f1b6") then
-    broadcastToAll(playerColor .. " has become the first player", { 1, 1, 1 })
+    broadcastToAll(playerColor .. " has become the first player", {1, 1, 1})
     state.firstPlayer = playerColor
   end
 end
 
 GREEN_CARD_DIST = 0.75
 BLUE_CARD_DIST = 1.7
-
 
 function DIV(a, b)
   return (a - a % b) / b
@@ -557,41 +551,40 @@ function ROUNDDOWN(a, b)
   return DIV(a, b) * b
 end
 
-
 function organizeHeldCards(playerColor, separationDistance)
   local player = Player[playerColor]
   local selected = player.getSelectedObjects()
-  local cardRot = 0;
+  local cardRot = 0
   for i, obj in pairs(selected) do
     if (obj.name ~= "Card") then
-      broadcastToColor("Can't organize non-card objects.", playerColor, { r = 1, b = 0, g = 0 })
+      broadcastToColor("Can't organize non-card objects.", playerColor, {r = 1, b = 0, g = 0})
       return
     end
     cardRot = obj.getRotation().y
   end
 
   local start = player.getPointerPosition()
-  local rotation = player.getPointerRotation();
+  local rotation = player.getPointerRotation()
 
   log("Card Y rotation is :" .. cardRot)
   local targetYRotation = ROUNDDOWN(cardRot + 45, 90) % 360
   log("Targetted Y rotation is :" .. targetYRotation)
-  local translation = { x = 1, y = 0.2, z = 0 }
+  local translation = {x = 1, y = 0.2, z = 0}
 
   if (closeTo(targetYRotation, 180, 1)) then
-    translation = { x = 0, y = 0.2, z = -1 * separationDistance }
+    translation = {x = 0, y = 0.2, z = -1 * separationDistance}
   elseif (closeTo(targetYRotation, 270, 1)) then
-    translation = { x = -1 * separationDistance, y = 0.2, z = 1 }
+    translation = {x = -1 * separationDistance, y = 0.2, z = 1}
   elseif (closeTo(targetYRotation, 0, 1) or closeTo(targetYRotation, 360, 1)) then
-    translation = { x = 0, y = 0.2, z = 1 * separationDistance }
+    translation = {x = 0, y = 0.2, z = 1 * separationDistance}
   elseif (closeTo(targetYRotation, 90, 1)) then
-    translation = { x = 1 * separationDistance, y = 0.2, z = 0 }
+    translation = {x = 1 * separationDistance, y = 0.2, z = 0}
   end
 
   for i, obj in pairs(selected) do
-    obj.setRotation({ x = 0, y = targetYRotation, z = 0 })
+    obj.setRotation({x = 0, y = targetYRotation, z = 0})
     obj.setPosition(start)
-    start = { x = start.x + translation.x, y = start.y + translation.y, z = start.z + translation.z }
+    start = {x = start.x + translation.x, y = start.y + translation.y, z = start.z + translation.z}
   end
 end
 
@@ -603,7 +596,7 @@ function useCard(playerColor)
       card.highlightOff()
       card.setVar(USED_CARD_TAG, false)
     else
-      card.highlightOn({ 1, 0, 0 })
+      card.highlightOn({1, 0, 0})
       card.setVar(USED_CARD_TAG, true)
     end
   end
@@ -621,7 +614,6 @@ function onScriptingButtonDown(button_number, playerColor)
   end
 end
 
-
 function startsWith(s, substring)
   return string.sub(s, 1, string.len(substring)) == substring
 end
@@ -629,10 +621,10 @@ end
 function split(s, sep)
   local result = {}
   local i = 1
-  for token in string.gmatch(s, "[^"..sep.."]+") do
+  for token in string.gmatch(s, "[^" .. sep .. "]+") do
     log(token)
     result[i] = token
-    i = i+1
+    i = i + 1
   end
   return result
 end
@@ -640,12 +632,11 @@ end
 function testCommand(args)
   local arg1 = args[2]
   local arg2 = args[3]
-  broadcastToAll(arg1, { 1, 1, 1 })
+  broadcastToAll(arg1, {1, 1, 1})
 end
 
-
 function onChat(message, player)
-  if(startsWith(message, "!")) then
+  if (startsWith(message, "!")) then
     local commandStr = string.sub(message, 2)
     log(commandStr)
     local parts = split(commandStr, "%s")
