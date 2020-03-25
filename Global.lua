@@ -40,6 +40,7 @@ function detailedbutton(domino, label, fn, font_size)
   button.label = label
   button.font_size = font_size
   button.function_owner = nil
+  domino.hide_when_face_down = false
   domino.createButton(button)
   state.buttons[domino.getGUID()] = button
 end
@@ -475,10 +476,10 @@ function consolidate(params)
       end
     end
   end
-  createMoney(mostNegX, total)
+  createMoney(mostNegX, y, z, total)
 end
 
-function createMoney(x, total)
+function createMoney(x, y, z, total)
   local num10s = math.floor(total / 10)
   total = total - (10 * num10s)
   local num5s = math.floor(total / 5)
